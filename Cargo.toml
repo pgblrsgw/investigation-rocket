@@ -7,7 +7,12 @@ authors = ["Geordon Worley <vadixidav@gmail.com>"]
 serde_json = "0.9"
 rocket = "0.2.0"
 rocket_codegen = "0.2.0"
+rocket_contrib = "0.2.0"
+lazy_static = "0.2"
 
 [dependencies.a4-proto]
 git = "https://github.com/pgblrsgw/a4-proto"
-rev = "057ac46f780b023f3d7dcc6b66a68625a43d1f2c"
+rev = "54fc1f59e5f9ca7bedb8878f90a401cbac5f8045"
+
+[dev-dependencies]
+rocket = { version = "0.2.0", features = ["testing"] }

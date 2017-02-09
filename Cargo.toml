@@ -4,3 +4,10 @@ version = "0.1.0"
 authors = ["Geordon Worley <vadixidav@gmail.com>"]
 
 [dependencies]
+serde_json = "0.9"
+rocket = "0.2.0"
+rocket_codegen = "0.2.0"
+
+[dependencies.a4-proto]
+git = "https://github.com/pgblrsgw/a4-proto"
+rev = "057ac46f780b023f3d7dcc6b66a68625a43d1f2c"

@@ -29,11 +29,9 @@ fn query_problems() -> JSON<Vec<String>> {
 
 #[post("/<name>")]
 fn create_problem(name: &str) -> Result<(), Status> {
-    // Attempt to create the new problem.
+    // Attempt to add the new problem.
     match MAP.lock().unwrap().entry(String::from(name)) {
-        // The entry was already taken, so return conflict status code.
         Entry::Occupied(_) => Err(Status::Conflict),
-        // The entry was vacant, so insert a blank problem.
         Entry::Vacant(v) => {
             v.insert(Problem::default());
             Ok(())

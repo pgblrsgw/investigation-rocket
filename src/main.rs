@@ -13,10 +13,11 @@ use std::collections::hash_map::{HashMap, Entry};
 use std::sync::Mutex;
 use rocket_contrib::JSON;
 use rocket::http::Status;
+use rocket::response::status;
 
 #[derive(Default)]
 struct Problem {
-    obstacles: Vec<proto::Obstacle>,
+    obstacles: HashMap<String, proto::Obstacle>,
 }
 
 lazy_static! {
@@ -29,13 +30,13 @@ fn query_problems() -> JSON<Vec<String>> {
 }
 
 #[post("/<name>")]
-fn create_problem(name: &str) -> Result<(), Status> {
+fn create_problem(name: &str) -> status::Custom<()> {
     // Attempt to add the new problem.
     match MAP.lock().unwrap().entry(String::from(name)) {
-        Entry::Occupied(_) => Err(Status::Conflict),
+        Entry::Occupied(_) => status::Custom(Status::Conflict, ()),
         Entry::Vacant(v) => {
             v.insert(Problem::default());
-            Ok(())
+            status::Custom(Status::Ok, ())
         }
     }
 }
@@ -78,6 +79,12 @@ mod test {
         let mut request = MockRequest::new(Method::Post, "/test");
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
+
+        // Attempt to create test again
+        let mut request = MockRequest::new(Method::Post, "/test");
+        let response = request.dispatch_with(&rocket);
+        // It should fail with a conflict this time.
+        assert_eq!(response.status(), Status::Conflict);
 
         // Make sure the problem was added to the array.
         let mut request = MockRequest::new(Method::Get, "/");

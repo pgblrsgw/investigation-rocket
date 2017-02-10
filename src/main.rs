@@ -1,6 +1,7 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 
+extern crate serde;
 extern crate serde_json;
 extern crate a4_proto as proto;
 #[macro_use]
@@ -49,41 +50,39 @@ fn main() {
 
 #[cfg(test)]
 mod test {
+    use super::serde;
     use super::serde_json;
+    use rocket::Response;
     use rocket::testing::MockRequest;
     use rocket::http::{Status, Method};
 
+    fn body_deser<T: serde::Deserialize>(response: &mut Response) -> Option<T> {
+        response.body()
+            .and_then(|b| b.into_string())
+            .map(|s| serde_json::from_str(&s)
+                .unwrap_or_else(|e| panic!("Failed to parse body as JSON: {:?}", e)))
+    }
+
     #[test]
     fn problems() {
+        // Make the mock server.
         let rocket = super::new_mounted_rocket();
 
         // Get the initial empty array.
         let mut request = MockRequest::new(Method::Get, "/");
         let mut response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
-
-        // Write the body out as a string.
-        let obstacles: Option<Vec<String>> = response.body()
-            .and_then(|b| b.into_string())
-            .and_then(|s| serde_json::from_str(&s).expect("Failed to parse body as JSON"));
-
-        assert_eq!(obstacles, Some(vec![]));
+        assert_eq!(body_deser::<Vec<String>>(&mut response), Some(vec![]));
 
         // Post a new problem called "test".
         let mut request = MockRequest::new(Method::Post, "/test");
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
 
-        // Make sure the problem was added.
+        // Make sure the problem was added to the array.
         let mut request = MockRequest::new(Method::Get, "/");
         let mut response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
-
-        // Write the body out as a string.
-        let obstacles: Option<Vec<String>> = response.body()
-            .and_then(|b| b.into_string())
-            .and_then(|s| serde_json::from_str(&s).expect("Failed to parse body as JSON"));
-
-        assert_eq!(obstacles, Some(vec![String::from("test")]));
+        assert_eq!(body_deser(&mut response), Some(vec![String::from("test")]));
     }
 }

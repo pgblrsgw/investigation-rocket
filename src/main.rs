@@ -56,9 +56,10 @@ mod test {
     #[test]
     fn problems() {
         let rocket = super::new_mounted_rocket();
+
+        // Get the initial empty array.
         let mut request = MockRequest::new(Method::Get, "/");
         let mut response = request.dispatch_with(&rocket);
-        // This should always be status 200.
         assert_eq!(response.status(), Status::Ok);
 
         // Write the body out as a string.
@@ -67,5 +68,22 @@ mod test {
             .and_then(|s| serde_json::from_str(&s).expect("Failed to parse body as JSON"));
 
         assert_eq!(obstacles, Some(vec![]));
+
+        // Post a new problem called "test".
+        let mut request = MockRequest::new(Method::Post, "/test");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Make sure the problem was added.
+        let mut request = MockRequest::new(Method::Get, "/");
+        let mut response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Write the body out as a string.
+        let obstacles: Option<Vec<String>> = response.body()
+            .and_then(|b| b.into_string())
+            .and_then(|s| serde_json::from_str(&s).expect("Failed to parse body as JSON"));
+
+        assert_eq!(obstacles, Some(vec![String::from("test")]));
     }
 }

@@ -46,7 +46,7 @@ mod test {
     extern crate serde;
     extern crate serde_json;
     use rocket::testing::MockRequest;
-    use rocket::http::{Status, Method};
+    use rocket::http::{Status, Method, ContentType};
     use proto;
 
     #[test]
@@ -71,6 +71,7 @@ mod test {
 
         // Add obstacle "asd" to "test".
         let mut request = MockRequest::new(Method::Post, "/test/obstacles/asd")
+            .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Obstacle{
                 location: [0.0, 0.0],
                 shape: proto::Shape::Circular { radius: 1.0 },

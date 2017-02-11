@@ -26,6 +26,7 @@ fn new_mounted_rocket() -> rocket::Rocket {
         problems::delete,
         obstacles::delete,
         obstacles::post,
+        obstacles::put,
         ])
         .manage(Mutex::new(HashMap::<String, Problem>::new()))
 }

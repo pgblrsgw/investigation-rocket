@@ -41,6 +41,27 @@ fn post(state: State<super::State>,
     }
 }
 
+#[put("/<problem>/obstacles/<obstacle_id>", data = "<obstacle>")]
+fn put(state: State<super::State>,
+        problem: &str,
+        obstacle_id: &str,
+        obstacle: JSON<proto::Obstacle>) -> status::Custom<()> {
+    // Attempt to access the problem.
+    match state.lock().unwrap().get_mut(problem) {
+        Some(problem) => {
+            // Attempt to remove the obstacle.
+            match problem.obstacles.entry(String::from(obstacle_id)) {
+                Entry::Occupied(mut o) => {
+                    o.insert(obstacle.0);
+                    status::Custom(Status::Ok, ())
+                },
+                Entry::Vacant(_) => status::Custom(Status::NotFound, ()),
+            }
+        }
+        None => status::Custom(Status::NotFound, ()),
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate serde;
@@ -69,8 +90,28 @@ mod test {
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::NotFound);
 
+        // Put obstacle "asd" to "test", which will fail because it doesn't exist yet.
+        let mut request = MockRequest::new(Method::Put, "/test/obstacles/asd")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Obstacle{
+                location: [0.0, 0.0],
+                shape: proto::Shape::Circular { radius: 1.0 },
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::NotFound);
+
         // Add obstacle "asd" to "test".
         let mut request = MockRequest::new(Method::Post, "/test/obstacles/asd")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Obstacle{
+                location: [0.0, 0.0],
+                shape: proto::Shape::Circular { radius: 1.0 },
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Put obstacle "asd" to "test", which will pass because it was just created.
+        let mut request = MockRequest::new(Method::Put, "/test/obstacles/asd")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Obstacle{
                 location: [0.0, 0.0],

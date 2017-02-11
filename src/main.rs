@@ -20,6 +20,7 @@ struct Problem {
     obstacles: HashMap<String, proto::Obstacle>,
     robot: Option<proto::Robot>,
     goal: Option<proto::Goal>,
+    boundary: Option<proto::Boundary>,
 }
 
 fn new_mounted_rocket() -> rocket::Rocket {

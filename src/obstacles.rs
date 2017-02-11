@@ -94,8 +94,10 @@ mod test {
         let mut request = MockRequest::new(Method::Put, "/test/obstacles/asd")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Obstacle{
-                location: [0.0, 0.0],
-                shape: proto::Shape::Circular { radius: 1.0 },
+                width: 1.0,
+                length: 1.0,
+                coordinate_x: 0.0,
+                coordinate_y: 0.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::NotFound);
@@ -104,8 +106,10 @@ mod test {
         let mut request = MockRequest::new(Method::Post, "/test/obstacles/asd")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Obstacle{
-                location: [0.0, 0.0],
-                shape: proto::Shape::Circular { radius: 1.0 },
+                width: 1.0,
+                length: 1.0,
+                coordinate_x: 0.0,
+                coordinate_y: 0.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
@@ -114,8 +118,10 @@ mod test {
         let mut request = MockRequest::new(Method::Put, "/test/obstacles/asd")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Obstacle{
-                location: [0.0, 0.0],
-                shape: proto::Shape::Circular { radius: 1.0 },
+                width: 1.0,
+                length: 1.0,
+                coordinate_x: 0.0,
+                coordinate_y: 0.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);

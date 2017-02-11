@@ -10,7 +10,7 @@ rocket_contrib = "0.2.0"
 
 [dependencies.a4-proto]
 git = "https://github.com/pgblrsgw/a4-proto"
-rev = "54fc1f59e5f9ca7bedb8878f90a401cbac5f8045"
+rev = "e530c1290e64eb8a3ca737e2338fe3be89539c1d"
 
 [dev-dependencies]
 rocket = { version = "0.2.0", features = ["testing"] }

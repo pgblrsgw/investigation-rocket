@@ -45,18 +45,9 @@ fn delete(state: State<super::State>, problem: &str, obstacle_id: &str) -> statu
 mod test {
     extern crate serde;
     extern crate serde_json;
-    use rocket::Response;
     use rocket::testing::MockRequest;
     use rocket::http::{Status, Method};
-
-    fn body_deser<T: serde::Deserialize>(response: &mut Response) -> Option<T> {
-        response.body()
-            .and_then(|b| b.into_string())
-            .map(|s| {
-                serde_json::from_str(&s)
-                    .unwrap_or_else(|e| panic!("Failed to parse body as JSON: {:?}", e))
-            })
-    }
+    use proto;
 
     #[test]
     fn test() {
@@ -77,5 +68,14 @@ mod test {
         let mut request = MockRequest::new(Method::Delete, "/test/obstacles/asd");
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::NotFound);
+
+        // Add obstacle "asd" to "test".
+        let mut request = MockRequest::new(Method::Post, "/test/obstacles/asd")
+            .body(serde_json::to_string(&proto::Obstacle{
+                location: [0.0, 0.0],
+                shape: proto::Shape::Circular { radius: 1.0 },
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
     }
 }

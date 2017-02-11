@@ -41,8 +41,22 @@ fn create_problem(name: &str) -> status::Custom<()> {
     }
 }
 
+#[delete("/<name>")]
+fn delete_problem(name: &str) -> status::Custom<()> {
+    // Attempt to remove the problem.
+    match MAP.lock().unwrap().remove(name) {
+        Some(_) => status::Custom(Status::Ok, ()),
+        None => status::Custom(Status::NotFound, ()),
+    }
+}
+
 fn new_mounted_rocket() -> rocket::Rocket {
-    rocket::ignite().mount("/", routes![query_problems, create_problem])
+    rocket::ignite().mount("/",
+                           routes![
+        query_problems,
+        create_problem,
+        delete_problem,
+        ])
 }
 
 fn main() {
@@ -60,8 +74,10 @@ mod test {
     fn body_deser<T: serde::Deserialize>(response: &mut Response) -> Option<T> {
         response.body()
             .and_then(|b| b.into_string())
-            .map(|s| serde_json::from_str(&s)
-                .unwrap_or_else(|e| panic!("Failed to parse body as JSON: {:?}", e)))
+            .map(|s| {
+                serde_json::from_str(&s)
+                    .unwrap_or_else(|e| panic!("Failed to parse body as JSON: {:?}", e))
+            })
     }
 
     #[test]
@@ -86,10 +102,26 @@ mod test {
         // It should fail with a conflict this time.
         assert_eq!(response.status(), Status::Conflict);
 
-        // Make sure the problem was added to the array.
+        // Make sure "test" was added to the array.
         let mut request = MockRequest::new(Method::Get, "/");
         let mut response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(body_deser(&mut response), Some(vec![String::from("test")]));
+
+        // Remove a non-existing problem "blah".
+        let mut request = MockRequest::new(Method::Delete, "/blah");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::NotFound);
+
+        // Remove "test".
+        let mut request = MockRequest::new(Method::Delete, "/test");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Make sure "test" was removed from the array.
+        let mut request = MockRequest::new(Method::Get, "/");
+        let mut response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(body_deser::<Vec<String>>(&mut response), Some(vec![]));
     }
 }

@@ -1,14 +1,38 @@
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::State;
+use rocket_contrib::JSON;
+use std::collections::hash_map::Entry;
+use proto;
 
-#[delete("/<name>/obstacles/<obstacle>")]
-fn delete(state: State<super::State>, name: &str, obstacle: &str) -> status::Custom<()> {
+#[post("/<problem>/obstacles/<obstacle_id>", data = "<obstacle>")]
+fn post(state: State<super::State>,
+        problem: &str,
+        obstacle_id: &str,
+        obstacle: JSON<proto::Obstacle>) -> status::Custom<()> {
     // Attempt to access the problem.
-    match state.lock().unwrap().get_mut(name) {
+    match state.lock().unwrap().get_mut(problem) {
         Some(problem) => {
             // Attempt to remove the obstacle.
-            match problem.obstacles.remove(obstacle) {
+            match problem.obstacles.entry(String::from(obstacle_id)) {
+                Entry::Occupied(_) => status::Custom(Status::Conflict, ()),
+                Entry::Vacant(v) => {
+                    v.insert(obstacle.0);
+                    status::Custom(Status::Ok, ())
+                }
+            }
+        }
+        None => status::Custom(Status::NotFound, ()),
+    }
+}
+
+#[delete("/<problem>/obstacles/<obstacle_id>")]
+fn delete(state: State<super::State>, problem: &str, obstacle_id: &str) -> status::Custom<()> {
+    // Attempt to access the problem.
+    match state.lock().unwrap().get_mut(problem) {
+        Some(problem) => {
+            // Attempt to remove the obstacle.
+            match problem.obstacles.remove(obstacle_id) {
                 Some(_) => status::Custom(Status::Ok, ()),
                 None => status::Custom(Status::NotFound, ()),
             }
@@ -19,8 +43,8 @@ fn delete(state: State<super::State>, name: &str, obstacle: &str) -> status::Cus
 
 #[cfg(test)]
 mod test {
-    use serde;
-    use serde_json;
+    extern crate serde;
+    extern crate serde_json;
     use rocket::Response;
     use rocket::testing::MockRequest;
     use rocket::http::{Status, Method};

@@ -33,8 +33,8 @@ fn delete(state: State<super::State>, problem: &str) -> status::Custom<()> {
 
 #[cfg(test)]
 mod test {
-    use serde;
-    use serde_json;
+    extern crate  serde;
+    extern crate  serde_json;
     use rocket::Response;
     use rocket::testing::MockRequest;
     use rocket::http::{Status, Method};

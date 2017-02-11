@@ -1,8 +1,6 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
 
-extern crate serde;
-extern crate serde_json;
 extern crate a4_proto as proto;
 extern crate rocket;
 extern crate rocket_contrib;
@@ -27,6 +25,7 @@ fn new_mounted_rocket() -> rocket::Rocket {
         problems::post,
         problems::delete,
         obstacles::delete,
+        obstacles::post,
         ])
         .manage(Mutex::new(HashMap::<String, Problem>::new()))
 }

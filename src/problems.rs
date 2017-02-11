@@ -10,10 +10,10 @@ fn get(state: State<super::State>) -> JSON<Vec<String>> {
     JSON(state.lock().unwrap().keys().cloned().collect())
 }
 
-#[post("/<name>")]
-fn post(state: State<super::State>, name: &str) -> status::Custom<()> {
+#[post("/<problem>")]
+fn post(state: State<super::State>, problem: &str) -> status::Custom<()> {
     // Attempt to add the new problem.
-    match state.lock().unwrap().entry(String::from(name)) {
+    match state.lock().unwrap().entry(String::from(problem)) {
         Entry::Occupied(_) => status::Custom(Status::Conflict, ()),
         Entry::Vacant(v) => {
             v.insert(Problem::default());
@@ -22,10 +22,10 @@ fn post(state: State<super::State>, name: &str) -> status::Custom<()> {
     }
 }
 
-#[delete("/<name>")]
-fn delete(state: State<super::State>, name: &str) -> status::Custom<()> {
+#[delete("/<problem>")]
+fn delete(state: State<super::State>, problem: &str) -> status::Custom<()> {
     // Attempt to remove the problem.
-    match state.lock().unwrap().remove(name) {
+    match state.lock().unwrap().remove(problem) {
         Some(_) => status::Custom(Status::Ok, ()),
         None => status::Custom(Status::NotFound, ()),
     }

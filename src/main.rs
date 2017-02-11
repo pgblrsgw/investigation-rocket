@@ -24,6 +24,7 @@ fn new_mounted_rocket() -> rocket::Rocket {
         problems::get,
         problems::post,
         problems::delete,
+        obstacles::get_all,
         obstacles::delete,
         obstacles::post,
         obstacles::put,

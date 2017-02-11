@@ -22,6 +22,23 @@ fn post(state: State<super::State>,
     }
 }
 
+#[put("/<problem>/Robot", data = "<robot>")]
+fn put(state: State<super::State>,
+        problem: &str,
+        robot: JSON<proto::Robot>) -> status::Custom<()> {
+    // Attempt to access the problem.
+    if let Some(problem) = state.lock().unwrap().get_mut(problem) {
+        if problem.robot.is_some() {
+            problem.robot = Some(robot.0);
+            status::Custom(Status::Ok, ())
+        } else {
+            status::Custom(Status::Conflict, ())
+        }
+    } else {
+        status::Custom(Status::NotFound, ())
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate serde;
@@ -60,6 +77,16 @@ mod test {
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
 
+        // Put robot to "test" which will fail because it hasn't been posted.
+        let mut request = MockRequest::new(Method::Put, "/test/Robot")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Robot{
+                coordinate: [5.0, 0.0],
+                radius: 1.0,
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Conflict);
+
         // Post robot to "test".
         let mut request = MockRequest::new(Method::Post, "/test/Robot")
             .header(ContentType::JSON)
@@ -79,5 +106,15 @@ mod test {
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Conflict);
+
+        // Put robot to "test".
+        let mut request = MockRequest::new(Method::Put, "/test/Robot")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Robot{
+                coordinate: [5.0, 0.0],
+                radius: 1.0,
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
     }
 }

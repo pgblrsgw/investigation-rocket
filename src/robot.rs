@@ -66,7 +66,7 @@ mod test {
         let mut request = MockRequest::new(Method::Post, "/test/Robot")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Robot{
-                coordinate: [5.0, 0.0],
+                point: proto::Point{ x: 5.0, y: 0.0 },
                 radius: 1.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
@@ -81,7 +81,7 @@ mod test {
         let mut request = MockRequest::new(Method::Put, "/test/Robot")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Robot{
-                coordinate: [5.0, 0.0],
+                point: proto::Point{ x: 5.0, y: 0.0 },
                 radius: 1.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
@@ -91,7 +91,7 @@ mod test {
         let mut request = MockRequest::new(Method::Post, "/test/Robot")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Robot{
-                coordinate: [5.0, 0.0],
+                point: proto::Point{ x: 5.0, y: 0.0 },
                 radius: 1.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
@@ -101,7 +101,7 @@ mod test {
         let mut request = MockRequest::new(Method::Post, "/test/Robot")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Robot{
-                coordinate: [5.0, 0.0],
+                point: proto::Point{ x: 5.0, y: 0.0 },
                 radius: 1.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);
@@ -111,7 +111,7 @@ mod test {
         let mut request = MockRequest::new(Method::Put, "/test/Robot")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Robot{
-                coordinate: [5.0, 0.0],
+                point: proto::Point{ x: 5.0, y: 0.0 },
                 radius: 1.0,
             }).unwrap());
         let response = request.dispatch_with(&rocket);

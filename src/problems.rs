@@ -1,18 +1,19 @@
-use super::{MAP, Problem};
+use super::Problem;
 use std::collections::hash_map::Entry;
 use rocket_contrib::JSON;
 use rocket::http::Status;
 use rocket::response::status;
+use rocket::State;
 
 #[get("/")]
-fn get() -> JSON<Vec<String>> {
-    JSON(MAP.lock().unwrap().keys().cloned().collect())
+fn get(state: State<super::State>) -> JSON<Vec<String>> {
+    JSON(state.lock().unwrap().keys().cloned().collect())
 }
 
 #[post("/<name>")]
-fn post(name: &str) -> status::Custom<()> {
+fn post(state: State<super::State>, name: &str) -> status::Custom<()> {
     // Attempt to add the new problem.
-    match MAP.lock().unwrap().entry(String::from(name)) {
+    match state.lock().unwrap().entry(String::from(name)) {
         Entry::Occupied(_) => status::Custom(Status::Conflict, ()),
         Entry::Vacant(v) => {
             v.insert(Problem::default());
@@ -22,9 +23,9 @@ fn post(name: &str) -> status::Custom<()> {
 }
 
 #[delete("/<name>")]
-fn delete(name: &str) -> status::Custom<()> {
+fn delete(state: State<super::State>, name: &str) -> status::Custom<()> {
     // Attempt to remove the problem.
-    match MAP.lock().unwrap().remove(name) {
+    match state.lock().unwrap().remove(name) {
         Some(_) => status::Custom(Status::Ok, ()),
         None => status::Custom(Status::NotFound, ()),
     }
@@ -48,7 +49,7 @@ mod test {
     }
 
     #[test]
-    fn problems() {
+    fn test() {
         // Make the mock server.
         let rocket = super::super::new_mounted_rocket();
 

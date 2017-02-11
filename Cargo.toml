@@ -9,7 +9,6 @@ serde_json = "0.9"
 rocket = "0.2.0"
 rocket_codegen = "0.2.0"
 rocket_contrib = "0.2.0"
-lazy_static = "0.2"
 
 [dependencies.a4-proto]
 git = "https://github.com/pgblrsgw/a4-proto"

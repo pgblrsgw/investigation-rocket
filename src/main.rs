@@ -8,6 +8,7 @@ extern crate rocket_contrib;
 mod obstacles;
 mod problems;
 mod robot;
+mod goal;
 
 use std::collections::hash_map::HashMap;
 use std::sync::Mutex;
@@ -18,6 +19,7 @@ type State = Mutex<HashMap<String, Problem>>;
 struct Problem {
     obstacles: HashMap<String, proto::Obstacle>,
     robot: Option<proto::Robot>,
+    goal: Option<proto::Goal>,
 }
 
 fn new_mounted_rocket() -> rocket::Rocket {
@@ -32,6 +34,8 @@ fn new_mounted_rocket() -> rocket::Rocket {
         obstacles::put,
         robot::post,
         robot::put,
+        goal::post,
+        goal::put,
         ])
         .manage(Mutex::new(HashMap::<String, Problem>::new()))
 }

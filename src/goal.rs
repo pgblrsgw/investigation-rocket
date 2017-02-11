@@ -4,16 +4,16 @@ use rocket::State;
 use rocket_contrib::JSON;
 use proto;
 
-#[post("/<problem>/Robot", data = "<robot>")]
+#[post("/<problem>/Goal", data = "<goal>")]
 fn post(state: State<super::State>,
-       problem: &str,
-       robot: JSON<proto::Robot>) -> status::Custom<()> {
+        problem: &str,
+        goal: JSON<proto::Goal>) -> status::Custom<()> {
     // Attempt to access the problem.
     if let Some(problem) = state.lock().unwrap().get_mut(problem) {
-        if problem.robot.is_some() {
+        if problem.goal.is_some() {
             status::Custom(Status::Conflict, ())
         } else {
-            problem.robot = Some(robot.0);
+            problem.goal = Some(goal.0);
             status::Custom(Status::Ok, ())
         }
     } else {
@@ -21,14 +21,14 @@ fn post(state: State<super::State>,
     }
 }
 
-#[put("/<problem>/Robot", data = "<robot>")]
+#[put("/<problem>/Goal", data = "<goal>")]
 fn put(state: State<super::State>,
-        problem: &str,
-        robot: JSON<proto::Robot>) -> status::Custom<()> {
+       problem: &str,
+       goal: JSON<proto::Goal>) -> status::Custom<()> {
     // Attempt to access the problem.
     if let Some(problem) = state.lock().unwrap().get_mut(problem) {
-        if problem.robot.is_some() {
-            problem.robot = Some(robot.0);
+        if problem.goal.is_some() {
+            problem.goal = Some(goal.0);
             status::Custom(Status::Ok, ())
         } else {
             status::Custom(Status::Conflict, ())
@@ -51,12 +51,11 @@ mod test {
         // Make the mock server.
         let rocket = super::super::new_mounted_rocket();
 
-        // Post robot to "test" before "test" exists so it should fail.
-        let mut request = MockRequest::new(Method::Post, "/test/Robot")
+        // Post goal to "test" before "test" exists so it should fail.
+        let mut request = MockRequest::new(Method::Post, "/test/Goal")
             .header(ContentType::JSON)
-            .body(serde_json::to_string(&proto::Robot{
-                point: proto::Point{ x: 5.0, y: 0.0 },
-                radius: 1.0,
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 0.0, y: 5.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::NotFound);
@@ -66,42 +65,38 @@ mod test {
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
 
-        // Put robot to "test" which will fail because it hasn't been posted.
-        let mut request = MockRequest::new(Method::Put, "/test/Robot")
+        // Put goal to "test" which will fail because it hasn't been posted.
+        let mut request = MockRequest::new(Method::Put, "/test/Goal")
             .header(ContentType::JSON)
-            .body(serde_json::to_string(&proto::Robot{
-                point: proto::Point{ x: 5.0, y: 0.0 },
-                radius: 1.0,
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 0.0, y: 5.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Conflict);
 
-        // Post robot to "test".
-        let mut request = MockRequest::new(Method::Post, "/test/Robot")
+        // Post goal to "test".
+        let mut request = MockRequest::new(Method::Post, "/test/Goal")
             .header(ContentType::JSON)
-            .body(serde_json::to_string(&proto::Robot{
-                point: proto::Point{ x: 5.0, y: 0.0 },
-                radius: 1.0,
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 0.0, y: 5.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
 
-        // Post robot to "test" again, which will fail.
-        let mut request = MockRequest::new(Method::Post, "/test/Robot")
+        // Post goal to "test" again, which will fail.
+        let mut request = MockRequest::new(Method::Post, "/test/Goal")
             .header(ContentType::JSON)
-            .body(serde_json::to_string(&proto::Robot{
-                point: proto::Point{ x: 5.0, y: 0.0 },
-                radius: 1.0,
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 0.0, y: 5.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Conflict);
 
-        // Put robot to "test".
-        let mut request = MockRequest::new(Method::Put, "/test/Robot")
+        // Put goal to "test".
+        let mut request = MockRequest::new(Method::Put, "/test/Goal")
             .header(ContentType::JSON)
-            .body(serde_json::to_string(&proto::Robot{
-                point: proto::Point{ x: 5.0, y: 0.0 },
-                radius: 1.0,
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 0.0, y: 5.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);

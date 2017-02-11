@@ -5,6 +5,21 @@ use rocket_contrib::JSON;
 use std::collections::hash_map::Entry;
 use proto;
 
+#[delete("/<problem>/obstacles/<obstacle_id>")]
+fn delete(state: State<super::State>, problem: &str, obstacle_id: &str) -> status::Custom<()> {
+    // Attempt to access the problem.
+    match state.lock().unwrap().get_mut(problem) {
+        Some(problem) => {
+            // Attempt to remove the obstacle.
+            match problem.obstacles.remove(obstacle_id) {
+                Some(_) => status::Custom(Status::Ok, ()),
+                None => status::Custom(Status::NotFound, ()),
+            }
+        }
+        None => status::Custom(Status::NotFound, ()),
+    }
+}
+
 #[post("/<problem>/obstacles/<obstacle_id>", data = "<obstacle>")]
 fn post(state: State<super::State>,
         problem: &str,
@@ -20,21 +35,6 @@ fn post(state: State<super::State>,
                     v.insert(obstacle.0);
                     status::Custom(Status::Ok, ())
                 }
-            }
-        }
-        None => status::Custom(Status::NotFound, ()),
-    }
-}
-
-#[delete("/<problem>/obstacles/<obstacle_id>")]
-fn delete(state: State<super::State>, problem: &str, obstacle_id: &str) -> status::Custom<()> {
-    // Attempt to access the problem.
-    match state.lock().unwrap().get_mut(problem) {
-        Some(problem) => {
-            // Attempt to remove the obstacle.
-            match problem.obstacles.remove(obstacle_id) {
-                Some(_) => status::Custom(Status::Ok, ()),
-                None => status::Custom(Status::NotFound, ()),
             }
         }
         None => status::Custom(Status::NotFound, ()),

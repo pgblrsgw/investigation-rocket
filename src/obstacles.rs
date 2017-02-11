@@ -38,5 +38,20 @@ mod test {
     fn test() {
         // Make the mock server.
         let rocket = super::super::new_mounted_rocket();
+
+        // Attempt to remove a non-existing obstacle from a non-existing problem.
+        let mut request = MockRequest::new(Method::Delete, "/test/obstacles/asd");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::NotFound);
+
+        // Add "test" to the problems.
+        let mut request = MockRequest::new(Method::Post, "/test");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Attempt to remove a non-existing obstacle from "test".
+        let mut request = MockRequest::new(Method::Delete, "/test/obstacles/asd");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::NotFound);
     }
 }

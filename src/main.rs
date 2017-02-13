@@ -10,6 +10,7 @@ mod problems;
 mod robot;
 mod goal;
 mod path;
+mod boundary;
 
 use std::collections::hash_map::HashMap;
 use std::sync::Mutex;
@@ -38,6 +39,8 @@ fn new_mounted_rocket() -> rocket::Rocket {
         robot::put,
         goal::post,
         goal::put,
+        boundary::post,
+        boundary::put,
         path::get,
         ])
         .manage(Mutex::new(HashMap::<String, Problem>::new()))

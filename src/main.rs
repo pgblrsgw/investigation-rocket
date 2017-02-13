@@ -4,6 +4,7 @@
 extern crate a4_proto as proto;
 extern crate rocket;
 extern crate rocket_contrib;
+extern crate pathfinding;
 
 mod obstacles;
 mod problems;

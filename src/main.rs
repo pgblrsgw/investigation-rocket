@@ -1,4 +1,4 @@
-#![feature(plugin)]
+#![feature(plugin, try_from)]
 #![plugin(rocket_codegen)]
 
 extern crate a4_proto as proto;

@@ -83,3 +83,69 @@ fn get_path(problem: &Problem) -> Result<proto::Path, ()> {
         .map(|c| proto::Point{ x: c[0], y: c[1] }).collect()})
         .ok_or(())
 }
+
+#[cfg(test)]
+mod test {
+    extern crate serde;
+    extern crate serde_json;
+    use rocket::testing::MockRequest;
+    use rocket::http::{Status, Method, ContentType};
+    use rocket::Response;
+    use proto;
+
+    fn body_deser<T: serde::Deserialize>(response: &mut Response) -> Option<T> {
+        response.body()
+            .and_then(|b| b.into_string())
+            .map(|s| {
+                serde_json::from_str(&s)
+                    .unwrap_or_else(|e| panic!("Failed to parse body as JSON: {:?}", e))
+            })
+    }
+
+    #[test]
+    fn test() {
+        // Make the mock server.
+        let rocket = super::super::new_mounted_rocket();
+
+        // Add "test" to the problems.
+        let mut request = MockRequest::new(Method::Post, "/test");
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Post boundary to "test".
+        let mut request = MockRequest::new(Method::Post, "/test/Boundary")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Boundary{
+                width: 10.0,
+                length: 10.0,
+                point: proto::Point{ x: -5.0, y: -5.0 },
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Post robot to "test".
+        let mut request = MockRequest::new(Method::Post, "/test/Robot")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Robot{
+                point: proto::Point{ x: -1.0, y: -1.0 },
+                radius: 0.2,
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+
+        // Post goal to "test" again, which will fail.
+        let mut request = MockRequest::new(Method::Post, "/test/Goal")
+            .header(ContentType::JSON)
+            .body(serde_json::to_string(&proto::Goal{
+                point: proto::Point{ x: 2.0, y: 2.0 },
+            }).unwrap());
+        let response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Conflict);
+
+        // Access the path.
+        let mut request = MockRequest::new(Method::Get, "/test/Path");
+        let mut response = request.dispatch_with(&rocket);
+        assert_eq!(response.status(), Status::Ok);
+        assert!(body_deser::<proto::Path>(&mut response).is_some());
+    }
+}

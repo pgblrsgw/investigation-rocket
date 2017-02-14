@@ -74,7 +74,7 @@ fn get_path(problem: &Problem) -> Result<proto::Path, ()> {
                 .into_iter()
                 .map(|c| checked_coord_add(*coord, c))
                 .flatten()
-                .filter_map(|c| if grid[c] {Some(c)} else {None})
+                .filter_map(|c| if grid[c] {None} else {Some(c)})
                 .collect_vec()
                 .into_iter()
         },
@@ -133,14 +133,14 @@ mod test {
         let response = request.dispatch_with(&rocket);
         assert_eq!(response.status(), Status::Ok);
 
-        // Post goal to "test" again, which will fail.
+        // Post goal to "test".
         let mut request = MockRequest::new(Method::Post, "/test/Goal")
             .header(ContentType::JSON)
             .body(serde_json::to_string(&proto::Goal{
                 point: proto::Point{ x: 2.0, y: 2.0 },
             }).unwrap());
         let response = request.dispatch_with(&rocket);
-        assert_eq!(response.status(), Status::Conflict);
+        assert_eq!(response.status(), Status::Ok);
 
         // Access the path.
         let mut request = MockRequest::new(Method::Get, "/test/Path");
